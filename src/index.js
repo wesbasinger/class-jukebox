@@ -19,6 +19,28 @@ const Header = () => {
   )
 }
 
+class TokenInput extends React.Component {
+
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      token: ""
+    }
+  }
+
+  render() {
+    return(
+      <div>
+        <label htmlFor="token">Token:</label>
+        <input placeholder="Enter a valid code." value={this.state.token} onChange={(e) => {
+          this.setState({token: e.target.value});
+        }}/>
+      </div>
+    )
+  }
+}
+
 const Footer = () => {
   return(
     <div>
@@ -36,6 +58,29 @@ const TrackDetail = (props) => {
   )
 }
 
+const TrackList = (props) => {
+  if(props.tracks.length === 0) {
+    return(
+      <p>No tracks found.  Check connection to server and try refresing the page.</p>
+    )
+  } else {
+    return(
+      <div>
+        {
+          props.tracks.map((track) => {
+            return(
+              <div key={track.uri}>
+                <TrackDetail track={track} />
+                <button>Play</button>
+              </div>
+            )
+          })
+        }
+      </div>
+    )
+  }
+}
+
 
 class App extends React.Component {
 
@@ -51,28 +96,26 @@ class App extends React.Component {
 
     let self = this;
 
-    setTimeout(() => {
-      mopidy.library.browse({"uri":"local:directory"}).then(function(data){
-        self.setState({tracks: data})
-      });
-    }, 1000)
+      setTimeout(() => {
+
+        try {
+          mopidy.library.browse({"uri":"local:directory"}).then(function(data){
+            self.setState({tracks: data})
+          });
+        } catch(TypeError) {
+          console.log("Server could not connect.")
+        }
+
+      }, 1000)
   }
 
   render() {
     return(
       <div>
         <Header />
-        {
-          this.state.tracks.map((track) => {
-            return(
-              <div key={track.uri}>
-                <TrackDetail track={track} />
-                <input placeholder="Enter a valid code"/>
-                <button>Play</button>
-              </div>
-            )
-          })
-        }
+
+        <TrackList tracks={this.state.tracks} />
+
         <Footer />
       </div>
     )
