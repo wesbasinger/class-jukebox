@@ -28,6 +28,13 @@ const Footer = () => {
   )
 }
 
+const TrackDetail = (props) => {
+  return(
+    <div>
+      <p>{props.track.name}</p>
+    </div>
+  )
+}
 
 
 class App extends React.Component {
@@ -42,13 +49,30 @@ class App extends React.Component {
 
   componentDidMount() {
 
+    let self = this;
+
+    setTimeout(() => {
+      mopidy.library.browse({"uri":"local:directory"}).then(function(data){
+        self.setState({tracks: data})
+      });
+    }, 1000)
   }
 
   render() {
     return(
       <div>
         <Header />
-          <div>Main content goes here.</div>
+        {
+          this.state.tracks.map((track) => {
+            return(
+              <div key={track.uri}>
+                <TrackDetail track={track} />
+                <input placeholder="Enter a valid code"/>
+                <button>Play</button>
+              </div>
+            )
+          })
+        }
         <Footer />
       </div>
     )
