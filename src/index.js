@@ -10,6 +10,31 @@ const mopidy = new Mopidy({
 
 console.log(mopidy)
 
+const checkToken = (token) => {
+
+  if(token.length !== 6) {
+    return false;
+  }
+
+  let stripped = "";
+
+  for(let i=0; i <token.length; i++) {
+    let char = token.charAt(i);
+
+    if (!isNaN(char)) {
+      stripped += char;
+    }
+  }
+
+  console.log(stripped)
+
+  if (Number(stripped) % 3 === 0) {
+    return true;
+  } else {
+    return false;
+  }
+}
+
 const Header = () => {
   return(
     <div>
@@ -25,7 +50,8 @@ class TokenInput extends React.Component {
     super(props);
 
     this.state = {
-      token: ""
+      token: "",
+      valid: false
     }
   }
 
@@ -34,8 +60,14 @@ class TokenInput extends React.Component {
       <div>
         <label htmlFor="token">Token:</label>
         <input placeholder="Enter a valid code." value={this.state.token} onChange={(e) => {
-          this.setState({token: e.target.value});
+          const status = checkToken(e.target.value);
+          this.setState({token: e.target.value, valid: status});
         }}/>
+        <p>
+          {
+            this.state.valid ? "Valid token" : "Invalid token"
+          }
+        </p>
       </div>
     )
   }
@@ -113,6 +145,8 @@ class App extends React.Component {
     return(
       <div>
         <Header />
+
+        <TokenInput />
 
         <TrackList tracks={this.state.tracks} />
 
