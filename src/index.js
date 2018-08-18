@@ -179,7 +179,24 @@ class App extends React.Component {
   }
 
   playTrack(trackNumber) {
-    mopidy.playback.play({tlid: trackNumber})
+
+    const trackUri = this.state.tracks[trackNumber-1].uri
+
+    mopidy.playback.getState().then((result) => {
+      if(result === "stopped") {
+
+        mopidy.tracklist.add({uri: trackUri});
+
+        mopidy.playback.play({tlid: 1});
+
+        mopidy.tracklist.clear()
+      } else {
+
+        alert("Please wait until the current song is completed.")
+
+      }
+    })
+
   }
 
   render() {
