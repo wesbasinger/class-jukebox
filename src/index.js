@@ -8,7 +8,6 @@ const mopidy = new Mopidy({
   callingConvention: "by-position-or-by-name"
 });
 
-console.log(mopidy)
 
 const checkToken = (token) => {
 
@@ -65,7 +64,7 @@ class TokenInput extends React.Component {
         }}/>
         <p>
           {
-            this.state.valid ? "Valid token" : "Invalid token"
+            this.state.valid ? "Valid token" : "Invalid or no token"
           }
         </p>
       </div>
@@ -82,33 +81,37 @@ const Footer = () => {
   )
 }
 
-const TrackDetail = (props) => {
-  return(
-    <div>
-      <p>{props.track.name}</p>
-    </div>
-  )
-}
 
 const TrackList = (props) => {
+
   if(props.tracks.length === 0) {
     return(
       <p>No tracks found.  Check connection to server and try refresing the page.</p>
     )
   } else {
     return(
-      <div>
+      <table>
+      <thead>
+        <tr>
+          <td>Track Number</td>
+          <td>Title</td>
+          <td>Number of Plays</td>
+        </tr>
+      </thead>
+      <tbody>
         {
           props.tracks.map((track) => {
             return(
-              <div key={track.uri}>
-                <TrackDetail track={track} />
-                <button>Play</button>
-              </div>
+              <tr key={track.uri}>
+                <td>Fill later</td>
+                <td>{track.name}</td>
+                <td>Fill later</td>
+              </tr>
             )
           })
         }
-      </div>
+      </tbody>
+      </table>
     )
   }
 }
@@ -132,6 +135,14 @@ class App extends React.Component {
 
         try {
           mopidy.library.browse({"uri":"local:directory"}).then(function(data){
+
+            let index = 1;
+
+            data.forEach((track) => {
+              track.id = index;
+              index ++;
+            })
+
             self.setState({tracks: data})
           });
         } catch(TypeError) {
