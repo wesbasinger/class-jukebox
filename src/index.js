@@ -1,13 +1,15 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-const Mopidy = require('mopidy');
+import Mopidy from 'mopidy';
 
 const mopidy = new Mopidy({
-  webSocketUrl: "ws://192.168.1.65:6680/mopidy/ws/",
-  callingConvention: "by-position-or-by-name"
+  webSocketUrl: "ws://localhost:6680/mopidy/ws/",
+  callingConvention: "by-position-or-by-name",
+  console: true
 });
 
+console.log(mopidy);
 
 const checkToken = (token) => {
 
@@ -50,7 +52,8 @@ class TokenInput extends React.Component {
 
     this.state = {
       token: "",
-      valid: false
+      valid: false,
+      trackNumber: ""
     }
   }
 
@@ -67,6 +70,18 @@ class TokenInput extends React.Component {
             this.state.valid ? "Valid token" : "Invalid or no token"
           }
         </p>
+        <label htmlFor="track">Track Number</label>
+        <input placeholder="Enter a track number" value={this.state.trackNumber} onChange={(e) => {
+          this.setState({trackNumber: Number(e.target.value)})
+        }}/>
+        <button onClick={(e) => {
+          if(this.state.valid) {
+            this.props.handlePlayRequest(this.state.trackNumber);
+            this.setState({token: "", valid: false, trackNumber: ""})
+          } else {
+            alert("Enter a valid token before attempting to play a song.");
+          }
+        }}>Play</button>
       </div>
     )
   }
@@ -100,10 +115,12 @@ const TrackList = (props) => {
       </thead>
       <tbody>
         {
+
           props.tracks.map((track) => {
+
             return(
               <tr key={track.uri}>
-                <td>Fill later</td>
+                <td>{track.id}</td>
                 <td>{track.name}</td>
                 <td>Fill later</td>
               </tr>
@@ -125,6 +142,8 @@ class App extends React.Component {
     this.state = {
       tracks: []
     }
+
+    this.playTrack = this.playTrack.bind(this);
   }
 
   componentDidMount() {
@@ -144,6 +163,13 @@ class App extends React.Component {
             })
 
             self.setState({tracks: data})
+
+            mopidy.tracklist.getLength().then(
+              (results) => {
+                console.log("Tracklist length")
+                console.log(results)
+              })
+
           });
         } catch(TypeError) {
           console.log("Server could not connect.")
@@ -152,12 +178,16 @@ class App extends React.Component {
       }, 1000)
   }
 
+  playTrack(trackNumber) {
+    mopidy.playback.play({tlid: trackNumber})
+  }
+
   render() {
     return(
       <div>
         <Header />
 
-        <TokenInput />
+        <TokenInput handlePlayRequest={this.playTrack} />
 
         <TrackList tracks={this.state.tracks} />
 
