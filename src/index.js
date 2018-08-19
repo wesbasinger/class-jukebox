@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom';
 
 import Mopidy from 'mopidy';
 
+import axios from 'axios';
+
 const mopidy = new Mopidy({
   webSocketUrl: "ws://localhost:6680/mopidy/ws/",
   callingConvention: "by-position-or-by-name",
@@ -75,9 +77,24 @@ class TokenInput extends React.Component {
           this.setState({trackNumber: Number(e.target.value)})
         }}/>
         <button onClick={(e) => {
+
+          const self = this;
+
           if(this.state.valid) {
-            this.props.handlePlayRequest(this.state.trackNumber);
-            this.setState({token: "", valid: false, trackNumber: ""})
+
+            const track_uri = this.props.tracks[this.state.trackNumber - 1].uri;
+
+            axios.post('https://mp-backend.herokuapp.com/play', {
+              token: self.state.token,
+              track_uri: track_uri
+            }).then((resp) => {
+              if(resp.data.status === "success") {
+                self.props.handlePlayRequest(self.state.trackNumber);
+                self.setState({token: "", valid: false, trackNumber: ""})
+              } else {
+                alert("Not a valid token, probably has been used already.")
+              }
+            })
           } else {
             alert("Enter a valid token before attempting to play a song.");
           }
@@ -204,7 +221,7 @@ class App extends React.Component {
       <div>
         <Header />
 
-        <TokenInput handlePlayRequest={this.playTrack} />
+        <TokenInput tracks={this.state.tracks} handlePlayRequest={this.playTrack} />
 
         <TrackList tracks={this.state.tracks} />
 
